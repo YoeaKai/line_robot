@@ -50,6 +50,9 @@ func main() {
 	// Receive the user's message, save it into the database, and reply to the user.
 	server.POST("/message", receiveAndSaveMessage)
 
+	// Reply message to the user.
+	server.POST("/reply", replyMessage)
+
 	server.Run(address)
 }
 
@@ -111,5 +114,20 @@ func receiveAndSaveMessage(ctx *gin.Context) {
 				log.Printf("Failed to insert message for %s to database: %v", messageId, err)
 			}
 		}
+	}
+}
+
+// replyMessage replies a message to the event determined by replyToken.
+func replyMessage(ctx *gin.Context) {
+	replyToken := ctx.PostForm("replyToken")
+	messageText := ctx.PostForm("messageText")
+	message := linebot.NewTextMessage("Get: \n" + messageText + ", \nThank you for your using!")
+
+	if _, err := bot.ReplyMessage(replyToken, message).Do(); err != nil {
+		log.Println("Failed to reply message: ", err)
+	} else {
+		ctx.JSON(200, gin.H{
+			"message": messageText,
+		})
 	}
 }
