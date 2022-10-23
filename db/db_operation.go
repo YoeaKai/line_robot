@@ -8,7 +8,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -65,6 +67,25 @@ func InsertMessageToDB(ctx context.Context, document UserMessage, messageId stri
 	log.Printf("Success insert message id %s in inserted id: %s", messageId, insertOneResult.InsertedID)
 
 	return nil
+}
+
+// GetUserList return all user IDs from the collection which is set from the config file.
+func GetUserList(ctx *gin.Context) ([]interface{}, error) {
+	client, err := ConnectToDatabase(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to the database: %v", err)
+	}
+	defer client.Disconnect(ctx)
+
+	collection := client.Database(database).Collection(dbCollection)
+
+	// Search distinct user IDs from the specific collection.
+	results, err := collection.Distinct(ctx, "userid", bson.D{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list user id from database: %v", err)
+	}
+
+	return results, nil
 }
 
 // connectToDatabase connects to the database and

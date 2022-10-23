@@ -53,6 +53,9 @@ func main() {
 	// Reply message to the user.
 	server.POST("/reply", replyMessage)
 
+	// Get the user list from the database.
+	server.GET("/user/list", getUserListFromDB)
+
 	server.Run(address)
 }
 
@@ -130,4 +133,18 @@ func replyMessage(ctx *gin.Context) {
 			"message": messageText,
 		})
 	}
+}
+
+// getUserListFromDB gets all user IDs from the collection which is set from the config file.
+func getUserListFromDB(ctx *gin.Context) {
+	var results []interface{}
+	var err error
+
+	if results, err = db.GetUserList(ctx); err != nil {
+		log.Println("Failed to get user id from database: ", err)
+	}
+
+	ctx.JSON(200, gin.H{
+		"userList": results,
+	})
 }
