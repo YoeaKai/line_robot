@@ -1,7 +1,7 @@
 application:
   port: 8080
-  channelSecret: "b0942a3c2eb623f7bac66cb190573168"
-  channelAccessToken: "PqJFys3wv4SvWu9Sw3FZVIAwn/q/6VHF5bcSHgJ9GoO2nJcMAdllcFcPZA/hd2Tq8PrQv5CMqVKWyHJXLJVDvaImLE34Y9kVWpGRY82hvUjSJpQ+1jD2ObrDCTn7lkkdyztKFvBztf4O5FJDGFP0agdB04t89/1O/w1cDnyilFU="
+  channelSecret: "inputYourChannelSecret"
+  channelAccessToken: "inputYourChannelAccessToken"
   dbURI: "mongodb://localhost:27017"
   database: "line_robot"
   dbCollection: "messages"
