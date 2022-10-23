@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"log"
 
+	db "github.com/YoeaKai/line_robot/db"
+
+	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"github.com/spf13/viper"
 )
@@ -18,9 +21,6 @@ var (
 	address            string          // Server address
 	channelSecret      string
 	channelAccessToken string
-	dbURI              string
-	database           string
-	dbCollection       string
 )
 
 func init() {
@@ -37,14 +37,79 @@ func init() {
 	address = fmt.Sprintf(":%s", viper.GetString("application.port"))
 	channelSecret = viper.GetString("application.channelSecret")
 	channelAccessToken = viper.GetString("application.channelAccessToken")
-	dbURI = viper.GetString("application.dbURI")
-	database = viper.GetString("application.database")
-	dbCollection = viper.GetString("application.dbCollection")
 }
 
 func main() {
+	server := gin.Default()
+
 	var err error
 	if bot, err = linebot.New(channelSecret, channelAccessToken); err != nil {
 		log.Fatal("Failed to create a new bot client instance: ", err)
+	}
+
+	// Receive the user's message, save it into the database, and reply to the user.
+	server.POST("/message", receiveAndSaveMessage)
+
+	server.Run(address)
+}
+
+// receiveAndSaveMessage receives the user's message, saves it into the database,
+// and finally replies with a message to the user.
+func receiveAndSaveMessage(ctx *gin.Context) {
+	// Parse and check the request.
+	events, err := bot.ParseRequest(ctx.Request)
+	if err != nil {
+		if err == linebot.ErrInvalidSignature {
+			ctx.Writer.WriteHeader(400)
+		} else {
+			ctx.Writer.WriteHeader(500)
+		}
+		return
+	}
+
+	// Analyze each event.
+	for _, event := range events {
+		if event.Type == linebot.EventTypeMessage {
+			var text, messageId string
+			switch message := event.Message.(type) {
+			// Handle text messages.
+			case *linebot.TextMessage:
+				text = message.Text
+				messageId = message.ID
+				replyMessage := linebot.NewTextMessage("Get: " + text + ", \nThank you for your using!")
+
+				// Reply message to the user.
+				if _, err := bot.ReplyMessage(event.ReplyToken, replyMessage).Do(); err != nil {
+					log.Printf("Failed to reply message for %s: %v", messageId, err)
+				}
+				// Handle sticker messages.
+			case *linebot.StickerMessage:
+				var keywords string
+				for _, keyword := range message.Keywords {
+					keywords = fmt.Sprint(keywords, ", ", keyword)
+				}
+				keywords = keywords[2:]
+
+				replyMessage := linebot.NewTextMessage("Get your cute stickcer! \nIts keyword: " + keywords)
+
+				if _, err = bot.ReplyMessage(event.ReplyToken, replyMessage).Do(); err != nil {
+					log.Print(err)
+				}
+			}
+
+			// Set the document and save it into the database.
+			document := db.UserMessage{
+				UserId:    event.Source.UserID,
+				Timestamp: event.Timestamp,
+				Message: db.Message{
+					MessageType: string(event.Message.Type()),
+					Text:        text,
+				},
+			}
+
+			if err := db.InsertMessageToDB(ctx, document, messageId); err != nil {
+				log.Printf("Failed to insert message for %s to database: %v", messageId, err)
+			}
+		}
 	}
 }

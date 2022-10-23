@@ -1,4 +1,4 @@
-// main_test verifies the functions of main.go.
+// db_operation_test verifies the functions of db_operation.go.
 
 package db_operation
 
@@ -12,10 +12,10 @@ func TestInsertMessageToDB(t *testing.T) {
 	ctx := context.Background()
 
 	// Testing file.
-	document := userMessage{
+	document := UserMessage{
 		UserId:    "userID1",
 		Timestamp: time.Now(),
-		Message: message{
+		Message: Message{
 			MessageType: "message'",
 			Text:        "Test message",
 		},

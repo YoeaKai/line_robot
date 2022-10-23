@@ -1,4 +1,4 @@
-// db_operation package
+// Package db_operation implements the libraries used to operate the database.
 
 package db_operation
 
@@ -13,16 +13,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type message struct {
+type Message struct {
 	MessageType string
 	Text        string
 }
 
-// userMessage is the type saved in MongoDB.
-type userMessage struct {
+// UserMessage is the type saved in MongoDB.
+type UserMessage struct {
 	UserId    string
 	Timestamp time.Time
-	Message   message
+	Message   Message
 }
 
 var (
@@ -35,7 +35,7 @@ func init() {
 	// Set config.
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../")
+	viper.AddConfigPath(".")
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal("Failed to read in config: ", err)
@@ -48,7 +48,7 @@ func init() {
 
 // insertMessageToDB insert "document" into the collection which is set from the config file.
 // messageId is the message ID get from each event.
-func InsertMessageToDB(ctx context.Context, document userMessage, messageId string) error {
+func InsertMessageToDB(ctx context.Context, document UserMessage, messageId string) error {
 	client, err := ConnectToDatabase(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database for %s: %v", messageId, err)
