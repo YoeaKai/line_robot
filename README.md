@@ -81,4 +81,7 @@ This is an instruction on how we set up line_robot locally. Running follow these
 
 <img width="1031" alt="line_robot_demo_screenshot" src="https://user-images.githubusercontent.com/23217065/197409834-58250cbf-2ce0-4c5f-81a4-69236d0893b9.png">
 
+## Contact
+
+Victor Chen (Yoea) - cek2llm@gmail.com
 
